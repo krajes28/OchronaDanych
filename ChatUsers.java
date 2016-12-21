@@ -59,6 +59,7 @@ public final class ChatUsers extends JFrame implements ActionListener
         else
         {
             pw.println(chatip.getText());
+            chatmsg.append(username + ": " + chatip.getText() + "\n");
             chatip.setText(null);
         }
     }
