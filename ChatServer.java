@@ -9,7 +9,7 @@ public class ChatServer {
     {
         new ChatServer().createserver();
     }
-    
+    int n, e, d;
     Vector<String> users = new Vector<String>();
     Vector<Manageuser> clients = new Vector<Manageuser>();
     public void createserver() throws Exception
@@ -23,7 +23,7 @@ public class ChatServer {
             clients.add(c);
         }
     }
-    public void sendtoall(String user, String message)
+    public void sendtoall(String user, String message) throws IOException
     {
         for(Manageuser c : clients)
         {
@@ -38,18 +38,25 @@ public class ChatServer {
     {
         String gotuser = "";
         BufferedReader input;
-        PrintWriter output;
+        ObjectOutputStream oos;
         public Manageuser(Socket client) throws Exception
         {
             input = new BufferedReader(new InputStreamReader(client.getInputStream()));
-            output = new PrintWriter(client.getOutputStream(),true);
+            oos = new ObjectOutputStream(client.getOutputStream());
             gotuser = input.readLine();
             users.add(gotuser);
             start();
         }
-        public void sendMessage(String chatuser, String chatmsg)
+        public void sendMessage(String chatuser, String chatmsg) throws IOException
         {
-            output.println(chatuser + ": " + chatmsg);
+            Message mes = new Message();
+            mes.user = chatuser;
+            mes.message = chatmsg;
+            mes.e = e;
+            mes.n = n;
+            oos.writeObject(mes);
+            oos.flush();
+            //oos.close();
         }
         public String getchatusers(){return gotuser;}
         public void run()
@@ -67,6 +74,9 @@ public class ChatServer {
                         break;
                     }
                     kluczRSA();
+                    System.out.println("e = " + e);
+                    System.out.println("n = " + n);
+                    System.out.println("d = " + d);
                     sendtoall(gotuser,line);
                 }
             }
@@ -79,7 +89,7 @@ public class ChatServer {
     
     public void kluczRSA() 
     {
-        int p, q, phi, n, e, d;
+        int p, q, phi;
         p = RandPrime();
         q = RandPrime();
         System.out.println("p = " + p);
@@ -87,13 +97,8 @@ public class ChatServer {
         
         phi = (p - 1) * (q - 1);
         n = p * q;
-        
         for(e = 3; NWD(e,phi) != 1; e += 2);
         d = Euklides(e,phi);
-        
-        System.out.println("e = " + e);
-        System.out.println("n = " + n);
-        System.out.println("d = " + d);
     }
 
     int RandPrime() 
@@ -112,6 +117,10 @@ public class ChatServer {
                 {
                     prime = false;
                 }
+            }
+            if (x==1)
+            {
+                prime = false;
             }
             if (prime == false)
             {

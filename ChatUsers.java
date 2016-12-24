@@ -9,17 +9,18 @@ public final class ChatUsers extends JFrame implements ActionListener
 {
     String username;
     PrintWriter pw;
-    BufferedReader br;
+    ObjectInputStream ois;
     JTextArea chatmsg;
     JTextField chatip;
     JButton send, exit;
     Socket chatusers;
+    int e, n;
     public ChatUsers(String uname, String servername) throws Exception
     {
         super(uname);
         this.username = uname;
         chatusers = new Socket(servername,80);
-        br = new BufferedReader(new InputStreamReader(chatusers.getInputStream()));
+        ois = new ObjectInputStream(chatusers.getInputStream());
         pw = new PrintWriter(chatusers.getOutputStream(), true);
         pw.println(uname);
         buildInterface();
@@ -82,13 +83,17 @@ public final class ChatUsers extends JFrame implements ActionListener
         @Override
         public void run()
         {
-            String line;
+            String message, user;
             try
             {
                 while(true)
                 {
-                    line = br.readLine();
-                    chatmsg.append(line+"\n");
+                    Message mess = (Message) ois.readObject();
+                    message = mess.message;
+                    user = mess.user;
+                    e = mess.e;
+                    n = mess.n;
+                    chatmsg.append(user + ": " + message + "e= " + e + "n= " + n +"\n");
                 }
             }
             catch(Exception ex)
