@@ -10,6 +10,7 @@ public class ChatServer {
         new ChatServer().createserver();
     }
     int n, e, d;
+    int[] t;
     Vector<String> users = new Vector<String>();
     Vector<Manageuser> clients = new Vector<Manageuser>();
     public void createserver() throws Exception
@@ -23,13 +24,13 @@ public class ChatServer {
             clients.add(c);
         }
     }
-    public void sendtoall(String user, String message) throws IOException
+    public void sendtoall(String user, String message, int[] key) throws IOException
     {
         for(Manageuser c : clients)
         {
             if(!c.getchatusers().equals(user))
             {
-                c.sendMessage(user,message);
+                c.sendMessage(user,message, key);
             }
         }
     }
@@ -47,13 +48,14 @@ public class ChatServer {
             users.add(gotuser);
             start();
         }
-        public void sendMessage(String chatuser, String chatmsg) throws IOException
+        public void sendMessage(String chatuser, String chatmsg, int[] chatkey) throws IOException
         {
             Message mes = new Message();
             mes.user = chatuser;
             mes.message = chatmsg;
-            mes.e = e;
+            mes.d = d;
             mes.n = n;
+            mes.key = chatkey;
             oos.writeObject(mes);
             oos.flush();
             //oos.close();
@@ -67,6 +69,7 @@ public class ChatServer {
                 while(true)
                 {
                     line = input.readLine();
+                    t = new int[line.length()];
                     if(line.equals("end"))
                     {
                         clients.remove(this);
@@ -77,7 +80,12 @@ public class ChatServer {
                     System.out.println("e = " + e);
                     System.out.println("n = " + n);
                     System.out.println("d = " + d);
-                    sendtoall(gotuser,line);
+                    t = kodowanieRSA(line,e,n);
+                    for(int i=0; i<line.length(); i++)
+                    {
+                        System.out.println(" " + t[i]);
+                    }
+                    sendtoall(gotuser,line,t);
                 }
             }
             catch(Exception ex)
@@ -86,12 +94,35 @@ public class ChatServer {
             }        
         }
     }
-    
+    public int[] kodowanieRSA(String message, int e, int n)
+    {
+        int pot,wyn,q;
+        int[] key = new int[message.length()];
+        for(int i=0; i<message.length(); i++)
+        {
+            char c = message.charAt(i);
+            pot = (byte) c; wyn = 1;
+            for(q = e; q > 0; q /= 2)
+            {
+              if((q % 2) == 1)
+                  wyn = (wyn * pot) % n;
+              pot = (pot * pot) % n; // kolejna potęga
+            };
+            key[i] = wyn;
+        }
+        
+        
+        
+        return key;
+    }
     public void kluczRSA() 
     {
         int p, q, phi;
         p = RandPrime();
-        q = RandPrime();
+        do{
+            q = RandPrime();
+        }while (p==q);
+        
         System.out.println("p = " + p);
         System.out.println("q = " + q);
         
@@ -107,7 +138,7 @@ public class ChatServer {
         int x=0;
         boolean prime;
         
-        x = generator.nextInt(20)+1;
+        x = generator.nextInt(13)+1;
         do 
         {
             prime = true;

@@ -14,7 +14,8 @@ public final class ChatUsers extends JFrame implements ActionListener
     JTextField chatip;
     JButton send, exit;
     Socket chatusers;
-    int e, n;
+    int d, n;
+    int[] key;
     public ChatUsers(String uname, String servername) throws Exception
     {
         super(uname);
@@ -89,17 +90,56 @@ public final class ChatUsers extends JFrame implements ActionListener
                 while(true)
                 {
                     Message mess = (Message) ois.readObject();
-                    message = mess.message;
+                    //message = mess.message;
                     user = mess.user;
-                    e = mess.e;
+                    d = mess.d;
                     n = mess.n;
-                    chatmsg.append(user + ": " + message + "e= " + e + "n= " + n +"\n");
+                    key = new int[mess.key.length];
+                    key = mess.key;
+                    message = dekodowanieRSA(d,n,key);    
+                    chatmsg.append(user + ": " + message + " d= " + d + " n= " + n +" key: ");
+                    for(int i=0; i<key.length; i++)
+                    {
+                        chatmsg.append(key[i] +" ");;
+                    }
+                    chatmsg.append("\n");
                 }
             }
             catch(Exception ex)
             {
                 System.out.println(ex.getMessage());
             }
+        }
+        public String dekodowanieRSA(int d, int n, int[] c)
+        {
+            int pot,wyn;
+            double t;
+            String message = "";
+            for(int i=0; i<c.length; i++)
+            {
+                //wyn = (t[i]^d) % n;
+                t = 1;
+                //
+
+                //pot = 1;
+                for(int q = 1; q <= d; q ++)
+                {
+                  //if((q % 2) == 0)
+                  //{
+                      t = (t*c[i]) % n;
+                      //System.out.print(" q = " + q);
+                      //System.out.print(" t = " + t);
+                      
+                  //}
+                  //pot = (pot * pot) % n;
+                };
+                t = t % n;
+                char ch = (char) t;
+                System.out.println("c = " + c[i]);
+                message = message + ch;
+                
+            }
+            return message;
         }
     }
 }
